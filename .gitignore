@@ -1,0 +1,13 @@
+/.idea/
+mirai
+img
+cftest.py
+test.py
+log.txt
+oj_json
+Pipfile
+Pipfile.lock
+cfrs.txt
+log/__pycache__/
+oj_api/__pycache__/
+web_operation/__pycache__
