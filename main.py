@@ -44,14 +44,13 @@ async def random_img(img_path):
     global img_setu
     img_dict = {'./img/ruishen/': img_ruishen, './img/qcjj/': img_qcjj, './img/setu/': img_setu}
     img_list = img_dict[img_path]
-    while True:
-        if img_list:
-            tmp = random.choice(img_list)
-            img_local = img_path + tmp
-            img_list.remove(tmp)
-            return img_local
-        else:
-            img_list = os.listdir(img_path)
+    if not img_list:
+        img_list = os.listdir(img_path)
+    tmp = random.choice(img_list)
+    img_local = img_path + tmp
+    img_list.remove(tmp)
+    return img_local
+        
 
 
 async def update():
@@ -257,11 +256,6 @@ if __name__ == '__main__':
                 await Image.from_local(img_local)
             ])
             await bot.send(event, message_chain)
-
-
-    @bot.on(MessageEvent)
-    async def color_query(event: MessageEvent):
-        msg = "".join(map(str, event.message_chain[Plain]))
         if msg.strip() == "色图":
             message_chain = MessageChain([
                 await Image.from_local('./img/color.jpg')
@@ -272,44 +266,32 @@ if __name__ == '__main__':
     @bot.on(MessageEvent)
     async def add_image(event: MessageEvent):
         global img_ruishen
-        msg = "".join(map(str, event.message_chain[Plain]))
-        if msg.strip() == '添加蕊神':
-            if event.sender.id == 2454256424:
-                quotes = event.message_chain[Quote]
-                message: MessageFromIdResponse = await bot.message_from_id(quotes[0].id)
-                images = message.data.message_chain[Image]
-                for image in images:
-                    all_img_ruishen = os.listdir('./img/ruishen/')
-                    suffix = image.image_id.split('.')[1]
-                    id_ruishen = str(len(all_img_ruishen) + 1) + '.' + suffix
-                    filename_ruishen = './img/ruishen/' + id_ruishen
-                    await image.download(filename_ruishen, None, False)
-                    img_ruishen.append(id_ruishen)
-                    await bot.send(event, '添加成功！')
-            else:
-                await bot.send(event, "你没有该权限！")
-
-
-    @bot.on(MessageEvent)
-    async def add_image(event: MessageEvent):
         global img_qcjj
         msg = "".join(map(str, event.message_chain[Plain]))
-        if msg.strip() == '添加清楚':
-            if event.sender.id == 2454256424 or event.sender.group.id in [839594887, 959366007]:
-                quotes = event.message_chain[Quote]
-                for quote in quotes:
-                    message: MessageFromIdResponse = await bot.message_from_id(quote.id)
-                    images = message.data.message_chain[Image]
-                    for image in images:
-                        all_img_qcjj = os.listdir('./img/qcjj/')
-                        suffix = image.image_id.split('.')[1]
-                        id_qcjj = str(len(all_img_qcjj) + 1) + '.' + suffix
-                        filename_qcjj = './img/qcjj/' + id_qcjj
-                        await image.download(filename_qcjj, None, False)
-                        img_qcjj.append(id_qcjj)
-                        await bot.send(event, '添加成功！')
+        if msg.strip() == '添加蕊神' or msg.strip() == '添加清楚':
+            if msg.strip() == '添加蕊神':
+                if event.sender.id == 2454256424:
+                    img_path = './img/ruishen/'
+                else:
+                    await bot.send(event, "你没有该权限！")
             else:
-                await bot.send(event, "本群暂无权限，请联系管理员！")
+                if event.sender.id == 2454256424 or event.sender.group.id in [839594887, 959366007]:
+                    img_path = './img/qcjj/'
+                else:
+                    await bot.send(event, "本群暂无权限，请联系管理员！")
+            quotes = event.message_chain[Quote]
+            message: MessageFromIdResponse = await bot.message_from_id(quotes[0].id)
+            images = message.data.message_chain[Image]
+            flag = 0
+            for image in images:
+                all_img_ruishen = os.listdir(img_path)
+                suffix = image.image_id.split('.')[1]
+                id = str(len(all_img_ruishen) + 1) + '.' + suffix
+                filename_ruishen = img_path + id
+                await image.download(filename_ruishen, None, False)
+                img_ruishen.append(id)
+                flag += 1
+            await bot.send(event, '添加 %d 张图片成功！' % flag)
 
 
     @bot.on(MessageEvent)
@@ -628,7 +610,7 @@ if __name__ == '__main__':
         await bot.send_group_message(805571983, message_chain)
 
 
-    @scheduler.scheduled_job('interval', minutes=10, timezone='Asia/Shanghai')
+    @scheduler.scheduled_job('interval', minutes=30, timezone='Asia/Shanghai')
     async def refresh_job():
         scheduler.remove_all_jobs()
         await update()
@@ -660,24 +642,6 @@ if __name__ == '__main__':
         await sche_add(auto_update_cf_user, up_time, id='up_rating')
         # scheduler.add_job(rs, 'cron', hour='0-23', timezone='Asia/Shanghai')
         # scheduler.add_job(notify_project, 'cron', hour=21, timezone='Asia/Shanghai', misfire_grace_time=60)
-
-
-    # @Filter(FriendMessage)
-    # def filter_(event: FriendMessage):  # 定义过滤器，在过滤器中对事件进行过滤和解析
-    #     msg = str(event.message_chain)
-    #     # 如果好友发送的消息格式正确，过滤器返回消息的剩余部分。比如，好友发送“ / command”，过滤器返回'command'。
-    #     # 如果好友发送的消息格式不正确，过滤器隐式地返回None。
-    #     if msg.startswith('/'):
-    #         return msg[1:]
-
-
-    # @hdc.on(filter_)
-    # async def handler(event: FriendMessage, payload: str):
-    #     global cf
-    #     print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(cf.begin_time)))
-    #     print(time.strftime("%Y-%m-%d %H:%M:%S",
-    #                         time.localtime(cf.end_time)))
-    #     await bot.send(event, f'命令 {payload} 执行成功。')
 
 
     bot.run()
