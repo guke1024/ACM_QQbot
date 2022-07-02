@@ -36,13 +36,13 @@ print(atc.info)
 img_ruishen = os.listdir('./img/ruishen/')
 img_qcjj = os.listdir('./img/qcjj/')
 img_setu = os.listdir('./img/setu/')
+img_dict = {'./img/ruishen/': img_ruishen, './img/qcjj/': img_qcjj, './img/setu/': img_setu}
 
 
 async def random_img(img_path):
     global img_ruishen
     global img_qcjj
     global img_setu
-    img_dict = {'./img/ruishen/': img_ruishen, './img/qcjj/': img_qcjj, './img/setu/': img_setu}
     img_list = img_dict[img_path]
     if not img_list:
         img_list = os.listdir(img_path)
@@ -247,8 +247,8 @@ if __name__ == '__main__':
     @bot.on(MessageEvent)
     async def qcjj_query(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
-        query_dict = {"来只清楚": './img/qcjj/', "随机蕊神": './img/ruishen/', "来只蕊神": './img/ruishen/', 'setu': './img/setu/', "涩图": './img/setu/'}
-        if msg.strip()[:4] in query_dict:
+        if msg.strip()[:4] in ["来只清楚", "随机蕊神", "来只蕊神", 'setu', "涩图"]:
+            query_dict = {"来只清楚": './img/qcjj/', "随机蕊神": './img/ruishen/', "来只蕊神": './img/ruishen/', 'setu': './img/setu/', "涩图": './img/setu/'}
             img_path = query_dict[msg.strip()[:4]]
             img_local = await random_img(img_path)
             print(img_local)
@@ -439,6 +439,14 @@ if __name__ == '__main__':
                 await bot.send(event, statue)
             else:
                 await bot.send(event, "不存在这个用户或查询出错哦")
+
+
+    @bot.on(MessageEvent)
+    async def update_atc_contest(event: MessageEvent):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        if msg.strip() == "更新atc比赛":
+            global atc
+            await bot.send(event, "更新atc比赛成功！" if await atc.update_contest() else "更新atc比赛失败！")
 
 
     @bot.on(MessageEvent)

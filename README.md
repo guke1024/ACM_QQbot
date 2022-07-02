@@ -36,7 +36,7 @@ ACM_Contest_QQbot</a>修改（膜拜<a href="https://github.com/INGg" target="__
 ## 部署方法
 1. 请直接参考原项目部署方法进行部署
 2. 部署成功后，将yirimirai部署教程中的net.mamoe.mirai-api-http文件夹下的setting.yml里的端口号改成7275
-3. 创建oj_json文件夹，在里面创建**cf_contest.json**、**cf_rating.json**、**lc_contest.json**、**nc_contest.json**、**nc_rating.json**、**subscribe.json**等文件
+3. 创建oj_json文件夹，在里面创建**cf_contest.json**、**cf_rating.json**、**lc_contest.json**、**nc_contest.json**、**nc_rating.json**、**atc_contest.json**、**subscribe.json**等文件
 4. 在cf_rating.json文件中添加以下内容
 ```json
 {
@@ -52,4 +52,12 @@ ACM_Contest_QQbot</a>修改（膜拜<a href="https://github.com/INGg" target="__
     "atc": {},
     "today": {}
 }
+```
+6. 在cf_contest.json、lc_contest.json、atc_contest.json文件中添加以下内容
+```json
+{}
+```
+7. 在nc_contest.json文件中添加以下内容
+```json
+[]
 ```

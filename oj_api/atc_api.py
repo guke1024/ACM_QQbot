@@ -1,21 +1,26 @@
 import re
 import json
 import time
+
+from anyio import start_blocking_portal
 from web_operation.operation import *
 from oj_api.contest import Contest
 
 
 class ATC(Contest):
     async def get_contest(self):
-        with open('./oj_json/nc_contest.json', 'r', encoding='utf-8') as f:
+        with open('./oj_json/atc_contest.json', 'r', encoding='utf-8') as f:
             contest_data = json.load(f)
         contest_list = []
         for contest in contest_data:
-            if contest['ojName'] == 'AtCoder' and contest['startTime'] >= int(time.time()) * 1000:
-                lately_contest = contest
-                if lately_contest.__contains__('endTime') and lately_contest.__contains__('startTime'):
-                    durationSeconds = (int(lately_contest['endTime']) - int(lately_contest['startTime'])) // 1000
-                    contest_list.append([lately_contest, durationSeconds])
+            if contest['source'] == 'AtCoder':
+                contest['contestName'] = contest['name']
+                start_time = int(time.mktime(time.strptime(contest['start_time'].replace('+00:00', ''), "%Y-%m-%dT%H:%M:%S"))) + 8 * 3600
+                contest['startTime'] = start_time
+                end_time = int(time.mktime(time.strptime(contest['end_time'].replace('+00:00', ''), "%Y-%m-%dT%H:%M:%S"))) + 8 * 3600
+                contest['endTime'] = end_time
+                durationSeconds = contest['endTime'] - contest['startTime']
+                contest_list.append([contest, durationSeconds])
         return contest_list
 
     async def get_contest_info(self):
@@ -45,7 +50,7 @@ class ATC(Contest):
               "持续时间：{}\n" \
               "比赛地址：{}\n".format(
             next_contest['contestName'],
-            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(next_contest['startTime']) // 1000)),
+            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(next_contest['startTime']))),
             "{}小时{:02d}分钟".format(durationSeconds // 3600, durationSeconds % 3600 // 60),
             next_contest['link']
         )
@@ -62,6 +67,12 @@ class ATC(Contest):
             return -1
 
     async def update_local_contest(self):
+        url = "https://contests.sdutacm.cn/contests.json"
+        json_data = await get_json(url)
+        if json_data == -1:
+            return False
+        with open('./oj_json/atc_contest.json', 'w') as f:
+            json.dump(json_data, f)
         return True
 
 
