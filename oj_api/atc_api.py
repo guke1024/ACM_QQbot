@@ -15,9 +15,9 @@ class ATC(Contest):
         for contest in contest_data:
             if contest['source'] == 'AtCoder':
                 contest['contestName'] = contest['name']
-                start_time = int(time.mktime(time.strptime(contest['start_time'].replace('+00:00', ''), "%Y-%m-%dT%H:%M:%S"))) + 8 * 3600
+                start_time = int(time.mktime(time.strptime(contest['start_time'], "%Y-%m-%dT%H:%M:%S+00:00"))) + 8 * 3600
                 contest['startTime'] = start_time
-                end_time = int(time.mktime(time.strptime(contest['end_time'].replace('+00:00', ''), "%Y-%m-%dT%H:%M:%S"))) + 8 * 3600
+                end_time = int(time.mktime(time.strptime(contest['end_time'], "%Y-%m-%dT%H:%M:%S+00:00"))) + 8 * 3600
                 contest['endTime'] = end_time
                 durationSeconds = contest['endTime'] - contest['startTime']
                 contest_list.append([contest, durationSeconds])
