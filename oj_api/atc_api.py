@@ -42,7 +42,7 @@ class ATC(Contest):
             return "最近没有比赛~", 32536700000, 0
         next_contest, durationSeconds = contest_list[0][0], contest_list[0][1]
         res = await self.format_atc_contest(next_contest, durationSeconds)
-        return res.rstrip('\n'), int(next_contest['startTime'] // 1000), durationSeconds
+        return res.rstrip('\n'), int(next_contest['startTime']), durationSeconds
 
     async def format_atc_contest(self, next_contest, durationSeconds):
         res = "比赛名称：{}\n" \
@@ -57,7 +57,7 @@ class ATC(Contest):
         return res
 
     async def get_rating(self, name):  # 返回一个列表，如果不存在用户则是空列表
-        url = "https://atcoder.jp/users/" + name
+        url = "https://acm-api.170601.xyz/atcoder/users/" + name
         html = await get_html(url)
         r = r'<th class="no-break">Rating<\/th><td><span class=(.*?)>(.*?)<\/span>'
         results = re.findall(r, html, re.S)

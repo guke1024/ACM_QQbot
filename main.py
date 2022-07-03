@@ -291,7 +291,7 @@ if __name__ == '__main__':
                 await image.download(filename_ruishen, None, False)
                 img_ruishen.append(id)
                 flag += 1
-            await bot.send(event, '添加 %d 张图片成功！' % flag)
+            await bot.send(event, '%d 张图片添加成功！' % flag)
 
 
     @bot.on(MessageEvent)
@@ -379,10 +379,6 @@ if __name__ == '__main__':
         if m:
             name = m.group(1)
             global cf
-            if int(time.time()) - cf.query_time < 3:
-                await bot.send(event, '不要频繁查询，请{}秒后再试'.format(int(cf.query_time + 3 - int(time.time()))))
-                return
-            cf.query_time = time.time()
             statue = await cf.get_rating(name)
             await bot.send(event, statue)
 
@@ -430,10 +426,6 @@ if __name__ == '__main__':
         if m:
             name = m.group(1)
             global atc
-            if int(time.time()) - atc.query_time < 5:
-                await bot.send(event, '不要频繁查询，请{}秒后再试'.format(int(atc.query_time + 5 - int(time.time()))))
-                return
-            atc.query_time = time.time()
             statue = await atc.get_rating(name)
             if statue != -1:
                 await bot.send(event, statue)
@@ -624,7 +616,7 @@ if __name__ == '__main__':
         await update()
         await sche_job()
         msg = 'success：' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        await bot.send_group_message(479083059, msg)
+        await bot.send_friend_message(2454256424, msg)
 
 
     async def sche_job():

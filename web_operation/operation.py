@@ -13,7 +13,7 @@ async def get_html(url):
         r = await client.get(url=url, headers=headers)
 
     # r.encoding = r.apparent_encoding
-    await asyncio.sleep(5)
+    # await asyncio.sleep(5)
     return r.text
 
 
