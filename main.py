@@ -636,6 +636,7 @@ if __name__ == '__main__':
         await sche_add(nc_note, nc.note_time)
         await sche_add(nc_shang_hao, nc.begin_time)
         await sche_add(lc_note, lc.note_time)
+        await sche_add(atc_note, atc.note_time)
         up_time = await cf.auto_update()
         auto_up_note = '下一次cf rating自动更新时间为：' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(up_time))
         await bot.send_friend_message(2454256424, auto_up_note)
