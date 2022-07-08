@@ -5,9 +5,10 @@ import datetime
 import random
 import os
 import hashlib
-from bisect import bisect_right
 import json
+import asyncio
 
+from bisect import bisect_right
 from mirai.models.api import MessageFromIdResponse
 from log import Log
 from oj_api import atc_api, cf_api, nc_api, lc_api
@@ -28,15 +29,20 @@ nc = nc_api.NC()
 lc = lc_api.LC()
 atc = atc_api.ATC()
 
-print(cf.info)
-print(nc.info)
-print(lc.info)
-print(atc.info)
+
+async def get_md5(filepath):
+    with open(filepath, 'rb') as file:
+        f = file.read()
+        return hashlib.md5(f).hexdigest()
+
 
 img_ruishen = os.listdir('./img/ruishen/')
 img_qcjj = os.listdir('./img/qcjj/')
 img_setu = os.listdir('./img/setu/')
-img_dict = {'./img/ruishen/': img_ruishen, './img/qcjj/': img_qcjj, './img/setu/': img_setu}
+img_dict = {'./img/ruishen/': img_ruishen,
+            './img/qcjj/': img_qcjj, './img/setu/': img_setu}
+img_md5 = [asyncio.run(get_md5('./img/ruishen/' + i)) for i in img_ruishen]
+img_md5 += [asyncio.run(get_md5('./img/qcjj/' + i)) for i in img_qcjj]
 
 
 async def random_img(img_path):
@@ -50,7 +56,6 @@ async def random_img(img_path):
     img_local = img_path + tmp
     img_list.remove(tmp)
     return img_local
-        
 
 
 async def update():
@@ -87,8 +92,10 @@ async def sche_add(func, implement, id=None):
     scheduler.add_job(func, CronTrigger(month=time.localtime(implement).tm_mon,
                                         day=time.localtime(implement).tm_mday,
                                         hour=time.localtime(implement).tm_hour,
-                                        minute=time.localtime(implement).tm_min,
-                                        second=time.localtime(implement).tm_sec,
+                                        minute=time.localtime(
+                                            implement).tm_min,
+                                        second=time.localtime(
+                                            implement).tm_sec,
                                         timezone='Asia/Shanghai'), id=id, misfire_grace_time=60)
 
 
@@ -101,21 +108,17 @@ if __name__ == '__main__':
     )
     hdc = HandlerControl(bot)  # 事件接收器
 
-
     @bot.on(Startup)
     def start_scheduler(_):
         scheduler.start()  # 启动定时器
-
 
     @bot.on(Shutdown)
     def stop_scheduler(_):
         scheduler.shutdown(True)  # 结束定时器
 
-
     @bot.on(NewFriendRequestEvent)
     async def allow_request(event: NewFriendRequestEvent):  # 有新用户好友申请就自动通过
         await bot.allow(event)
-
 
     @bot.on(MessageEvent)
     async def show_list(event: MessageEvent):  # 功能列表展示
@@ -137,7 +140,6 @@ if __name__ == '__main__':
                                    "\n项目地址 -> 获取项目地址"
                                    "\nbug联系：2454256424"])
 
-
     @bot.on(MessageEvent)
     async def on_group_message(event: MessageEvent):  # 返回
         if At(bot.qq) in event.message_chain and ("".join(map(str, event.message_chain[Plain]))).strip() == '':
@@ -146,13 +148,11 @@ if __name__ == '__main__':
             ])
             await bot.send(event, message_chain)
 
-
     @bot.on(MessageEvent)
     async def project_address(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         if msg == '项目地址':
             await bot.send(event, "大佬可以点个star✨吗qwq\nhttps://github.com/guke1024/ACM_QQbot")
-
 
     @bot.on(MessageEvent)
     async def withdraw_message(event: MessageEvent):
@@ -167,7 +167,6 @@ if __name__ == '__main__':
                     except ApiError:
                         await bot.send(event, "撤回失败！")
                         pass
-
 
     @bot.on(MessageEvent)
     async def subscribe(event: MessageEvent):
@@ -196,7 +195,6 @@ if __name__ == '__main__':
             else:
                 await bot.send(event, "请输入正确的订阅内容！")
 
-
     @bot.on(MessageEvent)
     async def delete_subscribe(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -224,31 +222,33 @@ if __name__ == '__main__':
             else:
                 await bot.send(event, "请输入正确的订阅内容！")
 
-
     @bot.on(MessageEvent)
     async def practice_query(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         if msg.strip().lower() in ["jrrp", "今日人品"]:
             today_date = time.localtime()
-            rp_str = str(today_date.tm_year) + str(today_date.tm_mon) + str(today_date.tm_mday) + str(event.sender.id)
+            rp_str = str(today_date.tm_year) + str(today_date.tm_mon) + \
+                str(today_date.tm_mday) + str(event.sender.id)
             rp_hash = hashlib.sha256(rp_str.encode('utf-8')).hexdigest()
             random.seed(rp_hash)
             rp = random.randint(0, 100)
             rp_range = [10, 20, 40, 60, 80, 90, 101]
-            rp_dict = {0:"大凶", 1:"凶", 2:"末吉", 3:"小吉", 4:"中吉", 5:"吉", 6:"大吉"}
-            res = ' 今日人品是{}，为“{}”'.format(rp, rp_dict[bisect_right(rp_range, rp)])
+            rp_dict = {0: "大凶", 1: "凶", 2: "末吉",
+                       3: "小吉", 4: "中吉", 5: "吉", 6: "大吉"}
+            res = ' 今日人品是{}，为“{}”'.format(
+                rp, rp_dict[bisect_right(rp_range, rp)])
             if event.sender.id == 80000000:
                 res = '@匿名消息' + res
                 await bot.send(event, res)
             else:
                 await bot.send(event, [At(event.sender.id), res])
 
-
     @bot.on(MessageEvent)
     async def qcjj_query(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         if msg.strip()[:4] in ["来只清楚", "随机蕊神", "来只蕊神", 'setu', "涩图"]:
-            query_dict = {"来只清楚": './img/qcjj/', "随机蕊神": './img/ruishen/', "来只蕊神": './img/ruishen/', 'setu': './img/setu/', "涩图": './img/setu/'}
+            query_dict = {"来只清楚": './img/qcjj/', "随机蕊神": './img/ruishen/',
+                          "来只蕊神": './img/ruishen/', 'setu': './img/setu/', "涩图": './img/setu/'}
             img_path = query_dict[msg.strip()[:4]]
             img_local = await random_img(img_path)
             print(img_local)
@@ -262,11 +262,9 @@ if __name__ == '__main__':
             ])
             await bot.send(event, message_chain)
 
-
     @bot.on(MessageEvent)
     async def add_image(event: MessageEvent):
-        global img_ruishen
-        global img_qcjj
+        global img_ruishen, img_qcjj, img_md5
         msg = "".join(map(str, event.message_chain[Plain]))
         if msg.strip() == '添加蕊神' or msg.strip() == '添加清楚':
             if msg.strip() == '添加蕊神':
@@ -284,15 +282,22 @@ if __name__ == '__main__':
             images = message.data.message_chain[Image]
             flag = 0
             for image in images:
-                all_img_ruishen = os.listdir(img_path)
+                all_img = os.listdir(img_path)
                 suffix = image.image_id.split('.')[1]
-                id = str(len(all_img_ruishen) + 1) + '.' + suffix
-                filename_ruishen = img_path + id
-                await image.download(filename_ruishen, None, False)
-                img_ruishen.append(id)
-                flag += 1
-            await bot.send(event, '%d 张图片添加成功！' % flag)
-
+                id = str(len(all_img) + 1) + '.' + suffix
+                filename = img_path + id
+                await image.download(filename, None, False)
+                tmp_md5 = await get_md5(filename)
+                if tmp_md5 in img_md5:
+                    os.remove(filename)
+                    flag -= 1
+                    await bot.send(event, "已存在相同图片了哦，你火星了~")
+                else:
+                    img_ruishen.append(id)
+                    img_md5.append(tmp_md5)
+                    flag += 1
+            if flag > 0:
+                await bot.send(event, '%d 张图片添加成功！' % flag)
 
     @bot.on(MessageEvent)
     async def next_contest(event: MessageEvent):  # 查询近期比赛
@@ -305,14 +310,12 @@ if __name__ == '__main__':
             else:
                 await bot.send(event, '最近没有比赛哦~')
 
-
     @bot.on(MessageEvent)
     async def query_today(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         if msg.strip().lower() == 'today':
             res = await query_today_contest()
             await bot.send(event, "找到今天的比赛如下：\n" + res if res != '' else "今天没有比赛哦~")
-
 
     @bot.on(MessageEvent)
     async def update_cf_contest(event: MessageEvent):
@@ -321,7 +324,6 @@ if __name__ == '__main__':
             global cf
             await bot.send(event, "更新cf比赛成功！" if await cf.update_contest() else "更新cf比赛失败！")
 
-
     @bot.on(MessageEvent)
     async def query_cf_contest(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -329,7 +331,6 @@ if __name__ == '__main__':
             global cf
             res = await cf.get_contest_info()
             await bot.send(event, res)
-
 
     @bot.on(MessageEvent)
     async def update_all_q(event: MessageEvent):
@@ -340,7 +341,6 @@ if __name__ == '__main__':
                 await auto_update_cf_user()
             else:
                 await bot.send(event, "你没有该权限！")
-
 
     @bot.on(MessageEvent)
     async def add_cf_user(event: MessageEvent):
@@ -355,7 +355,6 @@ if __name__ == '__main__':
                     group_id = str(event.sender.group.id)
                     await bot.send(event, '添加成功！' if await cf.add_cf_user(uname, group_id) else "该用户不存在或cf api异常！")
 
-
     @bot.on(MessageEvent)
     async def del_cf_user(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -369,7 +368,6 @@ if __name__ == '__main__':
                     group_id = str(event.sender.group.id)
                     await bot.send(event, '删除成功！' if await cf.del_cf_user(uname, group_id) else '该用户不存在！')
 
-
     @bot.on(MessageEvent)
     async def query_cf_rank(event: MessageEvent):  # 查询对应人的分数
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -382,7 +380,6 @@ if __name__ == '__main__':
             statue = await cf.get_rating(name)
             await bot.send(event, statue)
 
-
     @bot.on(MessageEvent)
     async def all_q(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -394,7 +391,6 @@ if __name__ == '__main__':
                 res = await cf.get_cf_rating(group_id)
                 await bot.send(event, res)
 
-
     @bot.on(MessageEvent)
     async def send_all_q(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -405,7 +401,6 @@ if __name__ == '__main__':
             await bot.send_group_message(int(group), "cf分数更新成功！")
             await bot.send_group_message(int(group), res)
 
-
     @bot.on(MessageEvent)
     async def query_atc_contest(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -413,7 +408,6 @@ if __name__ == '__main__':
             global atc
             res = await atc.get_contest_info()
             await bot.send(event, res if res else "获取比赛时出错，请联系管理员")
-
 
     @bot.on(MessageEvent)
     async def query_atc_rank(event: MessageEvent):
@@ -432,7 +426,6 @@ if __name__ == '__main__':
             else:
                 await bot.send(event, "不存在这个用户或查询出错哦")
 
-
     @bot.on(MessageEvent)
     async def update_atc_contest(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -440,14 +433,12 @@ if __name__ == '__main__':
             global atc
             await bot.send(event, "更新atc比赛成功！" if await atc.update_contest() else "更新atc比赛失败！")
 
-
     @bot.on(MessageEvent)
     async def update_nc_contest(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         if msg.strip() == "更新牛客比赛":
             global nc
             await bot.send(event, "更新牛客比赛成功！" if await nc.update_contest() else "更新牛客比赛失败！")
-
 
     @bot.on(MessageEvent)
     async def query_nc_contest(event: MessageEvent):
@@ -457,13 +448,11 @@ if __name__ == '__main__':
             res = await nc.get_contest_info()
             await bot.send(event, res if res else "获取比赛时出错，请联系管理员")
 
-
     @bot.on(MessageEvent)
     async def update_nc_rating(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         if msg.strip() == "更新牛客分数" or msg.strip().lower() == "更新牛客rating":
             await bot.send(event, "更新牛客rating成功！" if await nc.update_all_nc_rating() else "更新牛客rating失败！")
-
 
     @bot.on(MessageEvent)
     async def query_nc_rating(event: MessageEvent):
@@ -474,14 +463,12 @@ if __name__ == '__main__':
             rating = await nc.get_rating(uname)
             await bot.send(event, rating if rating else "该用户不存在！")
 
-
     @bot.on(MessageEvent)
     async def update_lc_contest(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
         if msg.strip().lower() == "更新lc比赛" or msg.strip().lower() == "更新leetcode比赛":
             global lc
             await bot.send(event, "更新LeetCode比赛成功！" if await lc.update_contest() else "更新LeetCode比赛失败！")
-
 
     @bot.on(MessageEvent)
     async def query_lc_contest(event: MessageEvent):
@@ -491,10 +478,8 @@ if __name__ == '__main__':
             res = await lc.get_contest_info()
             await bot.send(event, res)
 
-
     async def default(x):
         return ''
-
 
     async def note(name, content='未指定发送内容', func=default):
         with open('./oj_json/subscribe.json', 'r', encoding='utf-8') as f:
@@ -520,7 +505,6 @@ if __name__ == '__main__':
                         json.dump(all_subscribe, f, indent=4)
                     await bot.send_friend_message(2454256424, "{}已成功取消订阅！".format(user_id))
 
-
     async def auto_update_cf_user():
         flag = 0
         while(flag < 5):
@@ -534,7 +518,6 @@ if __name__ == '__main__':
                 time.sleep(300)
                 flag += 1
 
-    
     @bot.on(MessageEvent)
     async def cancel_update_sche(event: MessageEvent):
         msg = "".join(map(str, event.message_chain[Plain]))
@@ -542,12 +525,10 @@ if __name__ == '__main__':
             scheduler.remove_job('up_rating')
             await bot.send(event, '取消成功！')
 
-
     async def cf_note():
         global cf
         message_chain = await cf.get_recent_info()
         await note('cf', message_chain)
-
 
     async def cf_shang_hao():
         message_chain = MessageChain([
@@ -555,19 +536,16 @@ if __name__ == '__main__':
         ])
         await note('cf', message_chain)
 
-
     async def cf_xia_hao():
         message_chain = MessageChain([
             await Image.from_local('./img/down_cf.jpg')
         ])
         await note('cf', message_chain)
 
-
     async def nc_note():
         global nc
         message_chain = await nc.get_recent_info()
         await note('牛客', message_chain)
-
 
     async def nc_shang_hao():
         message_chain = MessageChain([
@@ -575,18 +553,15 @@ if __name__ == '__main__':
         ])
         await note('牛客', message_chain)
 
-
     async def lc_note():
         global lc
         message_chain = await lc.get_recent_info()
         await note('lc', message_chain)
 
-
     async def atc_note():
         global atc
         message_chain = await atc.get_recent_info()
         await note('atc', message_chain)
-    
 
     async def notify_contest_info():
         res = await query_today_contest()
@@ -595,7 +570,6 @@ if __name__ == '__main__':
         else:
             msg = "今天没有比赛哦~记得刷题呀！"
         await note('today', msg)
-
 
     async def notify_project():
         message_chain = MessageChain([
@@ -609,7 +583,6 @@ if __name__ == '__main__':
         ])
         await bot.send_group_message(805571983, message_chain)
 
-
     @scheduler.scheduled_job('interval', minutes=30, timezone='Asia/Shanghai')
     async def refresh_job():
         scheduler.remove_all_jobs()
@@ -618,10 +591,10 @@ if __name__ == '__main__':
         msg = 'success：' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         await bot.send_friend_message(2454256424, msg)
 
-
     async def sche_job():
         global cf, atc, nc, lc
-        scheduler.add_job(update, 'interval', hours=9, timezone='Asia/Shanghai', misfire_grace_time=60)
+        scheduler.add_job(update, 'interval', hours=9,
+                          timezone='Asia/Shanghai', misfire_grace_time=60)
         scheduler.add_job(notify_contest_info, CronTrigger(hour=8, minute=0, timezone='Asia/Shanghai'),
                           misfire_grace_time=60)
         scheduler.add_job(refresh_job, 'cron', hour=5, minute=0, second=0, timezone='Asia/Shanghai',
@@ -638,11 +611,11 @@ if __name__ == '__main__':
         await sche_add(lc_note, lc.note_time)
         await sche_add(atc_note, atc.note_time)
         up_time = await cf.auto_update()
-        auto_up_note = '下一次cf rating自动更新时间为：' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(up_time))
+        auto_up_note = '下一次cf rating自动更新时间为：' + \
+            time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(up_time))
         await bot.send_friend_message(2454256424, auto_up_note)
         await sche_add(auto_update_cf_user, up_time, id='up_rating')
         # scheduler.add_job(rs, 'cron', hour='0-23', timezone='Asia/Shanghai')
         # scheduler.add_job(notify_project, 'cron', hour=21, timezone='Asia/Shanghai', misfire_grace_time=60)
-
 
     bot.run()
