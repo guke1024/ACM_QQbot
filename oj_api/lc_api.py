@@ -46,31 +46,23 @@ class LC(Contest):
             json_data = json.load(f)
         contest_info = json_data['data']['contestUpcomingContests']
         for contest in contest_info:
-            try:
-                html = etree.HTML(contest['description'])
-                company = html.xpath("/html/body/div/div/div/p[1]/text()")[0]
-                start_time = contest['startTime']
-            except:
-                return []
-            year = time.localtime(start_time).tm_year
-            mon = time.localtime(start_time).tm_mon
-            day = time.localtime(start_time).tm_mday
-            hour = time.localtime(start_time).tm_hour
-            minute = time.localtime(start_time).tm_min
-            second = time.localtime(start_time).tm_sec
-
+            # try:
+            #     html = etree.HTML(contest['description'])
+            #     company = html.xpath("/html/body/div/div/div/p[1]/text()")[0]
+            # except:
+            #     return []
             info = "比赛名称：{}\n" \
-                   "赞助公司：{}\n" \
                    "开始时间：{}\n" \
                    "持续时间：{}\n" \
                    "比赛地址：{}".format(
-                contest['title'],
-                company,
-                "{}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}".format(year, mon, day, hour, minute, second),
-                "{}小时{:02d}分钟".format(contest['duration'] // 3600, contest['duration'] % 3600 // 60),
-                "https://leetcode-cn.com/contest/" + contest['titleSlug'])
+                       "LeetCode " + contest['title'],
+                       time.strftime("%Y-%m-%d %H:%M:%S",
+                                     time.localtime(contest['startTime'])),
+                       "{}小时{:02d}分钟".format(
+                           contest['duration'] // 3600, contest['duration'] % 3600 // 60),
+                       "https://leetcode-cn.com/contest/" + contest['titleSlug'])
 
-            res.append([info, start_time, contest['duration']])
+            res.append([info, contest['startTime'], contest['duration']])
         res.sort(key=lambda x: x[1], reverse=False)
         return res
 
@@ -98,9 +90,21 @@ class LC(Contest):
         recent, _, _ = await self.get_next_contest()
         return "LeetCode比赛还有15分钟就开始啦，没有报名的尽快报名~\n" + recent
 
-    # TODO 获取力扣分数
+    async def update_local_rating(self):
+        json_data = await get_json(
+            "https://raw.iqiq.io/chiehmin/leetcode-ranking-search/master/public/data/global-ranking.json")
+        if json_data == -1:
+            return False
+        with open('./oj_json/lc_rating.json', 'w', encoding='utf-8') as f:
+            json.dump(json_data, f)
+            return True
+
     async def get_rating(self, name):
-        pass
+        with open('./oj_json/lc_rating.json', 'r', encoding='utf-8') as f:
+            json_data = json.load(f)
+        for user in json_data:
+            if user["realName"] == name:
+                return '"{}"rating为: {}，全球ranking为: {}'.format(name, user["rating"].split(".")[0], user["globalRanking"])
 
 
 if __name__ == '__main__':

@@ -128,7 +128,7 @@ if __name__ == '__main__':
                                    "\ncf/牛客/lc/atc -> 最近cf/牛客/lc/atc比赛"
                                    "\ntoday -> 今日比赛"
                                    "\njrrp -> 今日人品"
-                                   "\n查询cf/牛客/atc分数id -> 查询对应id的cf/牛客/atc分数"
+                                   "\n查询cf/牛客/atc/力扣分数id -> 查询对应id的cf/牛客/atc/力扣分数"
                                    "\n添加/删除cf用户id -> 添加/删除本群cf用户"
                                    "\ncf总查询 -> 查询本群所有cf用户rating分"
                                    "\n订阅cf/牛客/lc/atc -> 在比赛开始前15分钟发送定时提醒"
@@ -268,11 +268,13 @@ if __name__ == '__main__':
         msg = "".join(map(str, event.message_chain[Plain]))
         if msg.strip() == '添加蕊神' or msg.strip() == '添加清楚':
             if msg.strip() == '添加蕊神':
+                img_tmp = img_ruishen
                 if event.sender.id == 2454256424:
                     img_path = './img/ruishen/'
                 else:
                     await bot.send(event, "你没有该权限！")
             else:
+                img_tmp = img_qcjj
                 if event.sender.id == 2454256424 or event.sender.group.id in [839594887, 959366007]:
                     img_path = './img/qcjj/'
                 else:
@@ -293,7 +295,7 @@ if __name__ == '__main__':
                     flag -= 1
                     await bot.send(event, "已存在相同图片了哦，你火星了~")
                 else:
-                    img_ruishen.append(id)
+                    img_tmp.append(id)
                     img_md5.append(tmp_md5)
                     flag += 1
             if flag > 0:
@@ -461,7 +463,7 @@ if __name__ == '__main__':
         if m:
             uname = m.group(1)
             rating = await nc.get_rating(uname)
-            await bot.send(event, rating if rating else "该用户不存在！")
+            await bot.send(event, rating if rating else "不存在这个用户或查询出错哦")
 
     @bot.on(MessageEvent)
     async def update_lc_contest(event: MessageEvent):
@@ -477,6 +479,22 @@ if __name__ == '__main__':
             global lc
             res = await lc.get_contest_info()
             await bot.send(event, res)
+
+    @bot.on(MessageEvent)
+    async def update_all_lc_rating(event: MessageEvent):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        if msg.strip().lower() == "更新力扣分数":
+            res = await lc.update_local_rating()
+            await bot.send(event, '更新成功！' if res else '更新失败！')
+
+    @bot.on(MessageEvent)
+    async def query_lc_rating(event: MessageEvent):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        m = re.match(r'^查询力扣分数\s*([\u4e00-\u9fa5\w.-]+)\s*$', msg.strip())
+        if m:
+            uname = m.group(1)
+            rating = await lc.get_rating(uname)
+            await bot.send(event, rating if rating else "不存在这个用户或查询出错哦")
 
     async def default(x):
         return ''
@@ -598,6 +616,8 @@ if __name__ == '__main__':
         scheduler.add_job(notify_contest_info, CronTrigger(hour=8, minute=0, timezone='Asia/Shanghai'),
                           misfire_grace_time=60)
         scheduler.add_job(refresh_job, 'cron', hour=5, minute=0, second=0, timezone='Asia/Shanghai',
+                          misfire_grace_time=60)
+        scheduler.add_job(lc.update_local_rating, 'cron', hour=12, minute=0, second=0, timezone='Asia/Shanghai',
                           misfire_grace_time=60)
         await sche_add(update, cf.update_time)
         await sche_add(update, atc.update_time)

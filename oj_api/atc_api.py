@@ -2,7 +2,6 @@ import re
 import json
 import time
 
-from anyio import start_blocking_portal
 from web_operation.operation import *
 from oj_api.contest import Contest
 
@@ -15,9 +14,11 @@ class ATC(Contest):
         for contest in contest_data:
             if contest['source'] == 'AtCoder':
                 contest['contestName'] = contest['name']
-                start_time = int(time.mktime(time.strptime(contest['start_time'], "%Y-%m-%dT%H:%M:%S+00:00"))) + 8 * 3600
+                start_time = int(time.mktime(time.strptime(
+                    contest['start_time'], "%Y-%m-%dT%H:%M:%S+00:00"))) + 8 * 3600
                 contest['startTime'] = start_time
-                end_time = int(time.mktime(time.strptime(contest['end_time'], "%Y-%m-%dT%H:%M:%S+00:00"))) + 8 * 3600
+                end_time = int(time.mktime(time.strptime(
+                    contest['end_time'], "%Y-%m-%dT%H:%M:%S+00:00"))) + 8 * 3600
                 contest['endTime'] = end_time
                 durationSeconds = contest['endTime'] - contest['startTime']
                 contest_list.append([contest, durationSeconds])
@@ -30,7 +31,7 @@ class ATC(Contest):
             return "最近没有比赛~"
         if contest_len > 3:
             contest_len = 3
-        res = '找到最近的 {} 场Atc比赛为：\n'.format(contest_len)
+        res = '找到最近的 {} 场ATC比赛为：\n'.format(contest_len)
         for i in range(contest_len):
             next_contest, durationSeconds = contest_list[i][0], contest_list[i][1]
             res += await self.format_atc_contest(next_contest, durationSeconds)
@@ -44,16 +45,22 @@ class ATC(Contest):
         res = await self.format_atc_contest(next_contest, durationSeconds)
         return res.rstrip('\n'), int(next_contest['startTime']), durationSeconds
 
+    async def get_recent_info(self):
+        recent, _, _ = await self.get_next_contest()
+        return "ATC比赛还有15分钟就开始啦，没有报名的尽快报名~\n" + recent
+
     async def format_atc_contest(self, next_contest, durationSeconds):
         res = "比赛名称：{}\n" \
               "开始时间：{}\n" \
               "持续时间：{}\n" \
               "比赛地址：{}\n".format(
-            next_contest['contestName'],
-            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(next_contest['startTime']))),
-            "{}小时{:02d}分钟".format(durationSeconds // 3600, durationSeconds % 3600 // 60),
-            next_contest['link']
-        )
+                  next_contest['contestName'],
+                  time.strftime("%Y-%m-%d %H:%M:%S",
+                                time.localtime(int(next_contest['startTime']))),
+                  "{}小时{:02d}分钟".format(
+                      durationSeconds // 3600, durationSeconds % 3600 // 60),
+                  next_contest['link']
+              )
         return res
 
     async def get_rating(self, name):  # 返回一个列表，如果不存在用户则是空列表

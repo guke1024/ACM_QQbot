@@ -1,5 +1,4 @@
 import json
-import pprint
 import time
 from web_operation.operation import *
 from oj_api.contest import Contest
@@ -66,7 +65,7 @@ class CF(Contest):
                     if 'Kotlin' not in contest['name']:
                         if 'Unrated' not in contest['name']:
                             if 'Div. 2' in contest['name'] or 'Div. 3' in contest['name'] or 'Div. 4' in contest[
-                                'name'] or 'Codeforces Global Round' in contest['name']:
+                                    'name'] or 'Codeforces Global Round' in contest['name']:
                                 final_contest = contest
                                 return final_contest
 
@@ -85,7 +84,8 @@ class CF(Contest):
             if final_rating['contestId'] != final_contest['id']:
                 differ = 'X'
             else:
-                differ = int(final_rating['newRating']) - int(final_rating['oldRating'])
+                differ = int(final_rating['newRating']) - \
+                    int(final_rating['oldRating'])
                 if differ > 0:
                     differ = '+' + str(differ)
                 else:
@@ -110,7 +110,8 @@ class CF(Contest):
             if not rating_info:
                 return ''
             rating[uname] = rating_info
-        rating = dict(sorted(rating.items(), key=lambda x: x[1][0], reverse=True))
+        rating = dict(
+            sorted(rating.items(), key=lambda x: x[1][0], reverse=True))
         all_rating["all_rating"] = rating
         f.seek(0)
         f.truncate()
@@ -119,14 +120,15 @@ class CF(Contest):
         for uname in rating:
             res += await self.format_rating_res(uname, rating[uname])
         return res.rstrip('\n')
-    
+
     async def auto_update(self):
         final_contest = await self.get_final_contest()
-        up = final_contest['startTimeSeconds'] + final_contest['durationSeconds']
+        up = final_contest['startTimeSeconds'] + \
+            final_contest['durationSeconds']
         if final_contest['type'] == 'ICPC':
             up += 25 * 60 * 60
         else:
-            up += 5 * 60 * 60
+            up += 6 * 60 * 60
         return up
 
     # 获取本地存储所有用户rating信息
@@ -166,7 +168,8 @@ class CF(Contest):
                 all_rating[group_id].append(uname)
                 if rating_info:
                     rating[uname] = rating_info
-                    rating = dict(sorted(rating.items(), key=lambda x: x[1][0], reverse=True))
+                    rating = dict(
+                        sorted(rating.items(), key=lambda x: x[1][0], reverse=True))
                     all_rating["all_rating"] = rating
                     f.seek(0)
                     f.truncate()
@@ -225,7 +228,8 @@ class CF(Contest):
                 else:
                     break
         if contest_list_lately:
-            contest_list_lately.sort(key=lambda x: (x['relativeTimeSeconds'], x['name']), reverse=True)
+            contest_list_lately.sort(key=lambda x: (
+                x['relativeTimeSeconds'], x['name']), reverse=True)
         return contest_list_lately
 
     async def get_next_contest(self):
@@ -258,8 +262,10 @@ class CF(Contest):
         contest_url = "https://codeforces.com/contest/"
         return "比赛名称：{}\n开始时间：{}\n持续时间：{}\n比赛地址：{}".format(
             contest['name'],
-            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(contest['startTimeSeconds']))),
-            "{}小时{:02d}分钟".format(contest['durationSeconds'] // 3600, contest['durationSeconds'] % 3600 // 60),
+            time.strftime("%Y-%m-%d %H:%M:%S",
+                          time.localtime(int(contest['startTimeSeconds']))),
+            "{}小时{:02d}分钟".format(
+                contest['durationSeconds'] // 3600, contest['durationSeconds'] % 3600 // 60),
             contest_url + str(contest['id'])
         )
 
