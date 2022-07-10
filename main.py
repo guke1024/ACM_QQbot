@@ -41,8 +41,8 @@ img_qcjj = os.listdir('./img/qcjj/')
 img_setu = os.listdir('./img/setu/')
 img_dict = {'./img/ruishen/': img_ruishen,
             './img/qcjj/': img_qcjj, './img/setu/': img_setu}
-img_md5 = [asyncio.run(get_md5('./img/ruishen/' + i)) for i in img_ruishen]
-img_md5 += [asyncio.run(get_md5('./img/qcjj/' + i)) for i in img_qcjj]
+img_md5 = {asyncio.run(get_md5('./img/ruishen/' + i)): './img/ruishen/' + i for i in img_ruishen}
+img_md5.update({asyncio.run(get_md5('./img/qcjj/' + i)): './img/qcjj/' + i for i in img_qcjj})
 
 
 async def random_img(img_path):
@@ -251,7 +251,6 @@ if __name__ == '__main__':
                           "来只蕊神": './img/ruishen/', 'setu': './img/setu/', "涩图": './img/setu/'}
             img_path = query_dict[msg.strip()[:4]]
             img_local = await random_img(img_path)
-            print(img_local)
             message_chain = MessageChain([
                 await Image.from_local(img_local)
             ])
@@ -264,29 +263,31 @@ if __name__ == '__main__':
 
     @bot.on(MessageEvent)
     async def add_image(event: MessageEvent):
-        global img_ruishen, img_qcjj, img_md5
         msg = "".join(map(str, event.message_chain[Plain]))
         if msg.strip() == '添加蕊神' or msg.strip() == '添加清楚':
+            global img_ruishen, img_qcjj, img_md5
             if msg.strip() == '添加蕊神':
                 img_tmp = img_ruishen
                 if event.sender.id == 2454256424:
                     img_path = './img/ruishen/'
                 else:
                     await bot.send(event, "你没有该权限！")
+                    return
             else:
                 img_tmp = img_qcjj
                 if event.sender.id == 2454256424 or event.sender.group.id in [839594887, 959366007]:
                     img_path = './img/qcjj/'
                 else:
                     await bot.send(event, "本群暂无权限，请联系管理员！")
+                    return
             quotes = event.message_chain[Quote]
             message: MessageFromIdResponse = await bot.message_from_id(quotes[0].id)
             images = message.data.message_chain[Image]
             flag = 0
             for image in images:
-                all_img = os.listdir(img_path)
                 suffix = image.image_id.split('.')[1]
-                id = str(len(all_img) + 1) + '.' + suffix
+                id = time.strftime("%Y%m%d%H%M%S", time.localtime(
+                )) + str(random.randint(1000, 9999)) + '.' + suffix
                 filename = img_path + id
                 await image.download(filename, None, False)
                 tmp_md5 = await get_md5(filename)
@@ -296,10 +297,40 @@ if __name__ == '__main__':
                     await bot.send(event, "已存在相同图片了哦，你火星了~")
                 else:
                     img_tmp.append(id)
-                    img_md5.append(tmp_md5)
+                    img_md5[tmp_md5] = filename
                     flag += 1
             if flag > 0:
                 await bot.send(event, '%d 张图片添加成功！' % flag)
+
+    @bot.on(MessageEvent)
+    async def add_image(event: MessageEvent):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        if msg.strip() == '删除图片':
+            global img_ruishen, img_qcjj, img_md5
+            if event.sender.id != 2454256424:
+                await bot.send(event, "你没有该权限！")
+                return
+            quotes = event.message_chain[Quote]
+            message: MessageFromIdResponse = await bot.message_from_id(quotes[0].id)
+            image = message.data.message_chain[Image][0]
+            suffix = image.image_id.split('.')[1]
+            filename = './img/' + 'tmp.' + suffix
+            await image.download(filename, None, False)
+            tmp_md5 = await get_md5(filename)
+            if tmp_md5 in img_md5:
+                os.remove(filename)
+                os.remove(img_md5[tmp_md5])
+                img = img_md5[tmp_md5]
+                id = img.split('/')[-1]
+                if 'ruishen' in img and id in img_ruishen:
+                    img_ruishen.remove(id)
+                if 'qcjj' in img and id in img_qcjj:
+                    img_qcjj.remove(id)
+                del img_md5[tmp_md5]
+                await bot.send(event, '1 张图片删除成功！')
+            else:
+                os.remove(filename)
+                await bot.send(event, '该图片不存在或已删除！')
 
     @bot.on(MessageEvent)
     async def next_contest(event: MessageEvent):  # 查询近期比赛
