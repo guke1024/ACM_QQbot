@@ -33,16 +33,15 @@ atc = atc_api.ATC()
 async def get_md5(filepath):
     with open(filepath, 'rb') as file:
         f = file.read()
-        return hashlib.md5(f).hexdigest()
+    return hashlib.md5(f).hexdigest()
 
 
-img_ruishen = os.listdir('./img/ruishen/')
-img_qcjj = os.listdir('./img/qcjj/')
-img_setu = os.listdir('./img/setu/')
+img_ruishen = [_.path for _ in os.scandir('./img/ruishen/')]
+img_qcjj = [_.path for _ in os.scandir('./img/qcjj/')]
+img_setu = [_.path for _ in os.scandir('./img/setu/')]
 img_dict = {'./img/ruishen/': img_ruishen,
             './img/qcjj/': img_qcjj, './img/setu/': img_setu}
-img_md5 = {asyncio.run(get_md5('./img/ruishen/' + i)): './img/ruishen/' + i for i in img_ruishen}
-img_md5.update({asyncio.run(get_md5('./img/qcjj/' + i)): './img/qcjj/' + i for i in img_qcjj})
+img_md5 = {asyncio.run(get_md5(_)): _ for _ in img_ruishen + img_qcjj}
 
 
 async def random_img(img_path):
@@ -51,10 +50,9 @@ async def random_img(img_path):
     global img_setu
     img_list = img_dict[img_path]
     if not img_list:
-        img_list = os.listdir(img_path)
-    tmp = random.choice(img_list)
-    img_local = img_path + tmp
-    img_list.remove(tmp)
+        img_list = [_.path for _ in os.scandir(img_path)]
+    img_local = random.choice(img_list)
+    img_list.remove(img_local)
     return img_local
 
 
@@ -286,9 +284,8 @@ if __name__ == '__main__':
             flag = 0
             for image in images:
                 suffix = image.image_id.split('.')[1]
-                id = time.strftime("%Y%m%d%H%M%S", time.localtime(
+                filename = img_path + time.strftime("%Y%m%d%H%M%S", time.localtime(
                 )) + str(random.randint(1000, 9999)) + '.' + suffix
-                filename = img_path + id
                 await image.download(filename, None, False)
                 tmp_md5 = await get_md5(filename)
                 if tmp_md5 in img_md5:
@@ -296,7 +293,7 @@ if __name__ == '__main__':
                     flag -= 1
                     await bot.send(event, "已存在相同图片了哦，你火星了~")
                 else:
-                    img_tmp.append(id)
+                    img_tmp.append(filename)
                     img_md5[tmp_md5] = filename
                     flag += 1
             if flag > 0:
@@ -321,11 +318,10 @@ if __name__ == '__main__':
                 os.remove(filename)
                 os.remove(img_md5[tmp_md5])
                 img = img_md5[tmp_md5]
-                id = img.split('/')[-1]
-                if 'ruishen' in img and id in img_ruishen:
-                    img_ruishen.remove(id)
-                if 'qcjj' in img and id in img_qcjj:
-                    img_qcjj.remove(id)
+                if img in img_ruishen:
+                    img_ruishen.remove(img)
+                if img in img_qcjj:
+                    img_qcjj.remove(img)
                 del img_md5[tmp_md5]
                 await bot.send(event, '1 张图片删除成功！')
             else:
