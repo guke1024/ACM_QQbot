@@ -1,7 +1,6 @@
 import re
 import sys
 import time
-import datetime
 import random
 import os
 import hashlib
@@ -77,10 +76,11 @@ async def query_next_contest():
 async def query_today_contest():
     next_contest = await query_next_contest()
     res = ""
-    mon = datetime.datetime.now().month
-    day = datetime.datetime.now().day
+    mon = time.localtime().tm_mon
+    day = time.localtime().tm_mday
     for contest in next_contest:
-        if time.localtime(contest[1]).tm_mon == mon and time.localtime(contest[1]).tm_mday == day:
+        tmp_time = contest[1] - 4 * 3600
+        if time.localtime(tmp_time).tm_mon == mon and time.localtime(tmp_time).tm_mday == day:
             res += contest[0] + '\n'
     print(res)
     return res.rstrip('\n')
