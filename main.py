@@ -366,7 +366,6 @@ if __name__ == '__main__':
         msg = "".join(map(str, event.message_chain[Plain]))
         if msg.strip().lower() == "更新cf分数":
             if event.sender.id == 2454256424:
-                await bot.send(event, '更新中……')
                 await auto_update_cf_user()
             else:
                 await bot.send(event, "你没有该权限！")
@@ -419,16 +418,6 @@ if __name__ == '__main__':
                 group_id = str(event.sender.group.id)
                 res = await cf.get_cf_rating(group_id)
                 await bot.send(event, res)
-
-    @bot.on(MessageEvent)
-    async def send_all_q(event: MessageEvent):
-        msg = "".join(map(str, event.message_chain[Plain]))
-        if msg.strip().lower()[:6] == "发送cf分数":
-            group = msg.strip().lower()[6:]
-            group = group if group else '805571983'
-            res = await cf.get_cf_rating(group)
-            await bot.send_group_message(int(group), "cf分数更新成功！")
-            await bot.send_group_message(int(group), res)
 
     @bot.on(MessageEvent)
     async def query_atc_contest(event: MessageEvent):
@@ -533,7 +522,7 @@ if __name__ == '__main__':
                 if all_subscribe[name][user_id] == 'GroupMessage':
                     event = Group(id=user_id, name='', permission='MEMBER')
                     tmp = await func(user_id)
-                    message_chain = tmp + content
+                    message_chain = content + tmp
                 else:
                     event = Friend(id=user_id)
                     message_chain = content
@@ -555,8 +544,7 @@ if __name__ == '__main__':
         while(flag < 5):
             res = await cf.update_rating()
             if res:
-                await note('cf', 'cf rating更新成功！')
-                await note('cf', '', cf.get_cf_rating)
+                await note('cf', 'cf rating更新成功！\n', cf.get_cf_rating)
                 return
             else:
                 await bot.send_friend_message(2454256424, 'cf rating更新失败！')

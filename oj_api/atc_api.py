@@ -63,7 +63,7 @@ class ATC(Contest):
               )
         return res
 
-    async def get_rating(self, name):  # 返回一个列表，如果不存在用户则是空列表
+    async def get_rating(self, name):
         url = "https://acm-api.170601.xyz/atcoder/users/" + name
         html = await get_html(url)
         r = r'<th class="no-break">Rating<\/th><td><span class=(.*?)>(.*?)<\/span>'
