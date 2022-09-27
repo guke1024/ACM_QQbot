@@ -1,10 +1,8 @@
 import json
 from web_operation.operation import *
 import time
-import datetime
 from lxml import etree
 import requests
-from dateutil.relativedelta import relativedelta
 from oj_api.contest import Contest
 
 
@@ -55,36 +53,30 @@ class NC(Contest):
                 return False
 
     async def update_local_contest(self):
-        now = datetime.datetime.now()
-        date = str(now.year) + '-' + str(now.month)
-        url = "https://ac.nowcoder.com/acm/calendar/contest?token=&month=" + date + "&_=" + str(int(time.time()) * 1000)
-        try:
-            json_data = await get_json(url)
-            contest_data = json_data['data']
-            next = now + relativedelta(months=1)
-            next_date = str(next.year) + '-' + str(next.month)
-            next_url = "https://ac.nowcoder.com/acm/calendar/contest?token=&month=" + next_date + "&_=" + str(
-                int(time.time()) * 1000)
-            json_next_data = await get_json(next_url)
-            if json_next_data['code'] == 0:
-                contest_data += json_next_data['data']
-            with open('./oj_json/nc_contest.json', 'w', encoding='utf-8') as f:
-                json.dump(contest_data, f)
-            return True
-        except:
+        url = "https://contests.sdutacm.cn/contests.json"
+        json_data = await get_json(url)
+        if json_data == -1:
             return False
+        with open('./oj_json/contests.json', 'w') as f:
+            json.dump(json_data, f, indent=4)
+        return True
 
     async def get_contest(self):
-        with open('./oj_json/nc_contest.json', 'r', encoding='utf-8') as f:
+        with open('./oj_json/contests.json', 'r', encoding='utf-8') as f:
             contest_data = json.load(f)
         contest_list = []
         for contest in contest_data:
-            if contest['ojName'] == 'NowCoder' \
-                    and contest['startTime'] >= int(time.time()) * 1000 \
-                    and "专题" not in contest['contestName']:
-                durationSeconds = (int(contest['endTime']) - int(contest['startTime'])) // 1000
-                contest['link'] = contest['link'][:-18]
-                contest_list.append([contest, durationSeconds])
+            if contest['source'] == '牛客竞赛' and "专题" not in contest['name']:
+                contest['contestName'] = contest['name']
+                start_time = int(time.mktime(time.strptime(
+                    contest['start_time'], "%Y-%m-%dT%H:%M:%S+00:00"))) + 8 * 3600
+                contest['startTime'] = start_time
+                end_time = int(time.mktime(time.strptime(
+                    contest['end_time'], "%Y-%m-%dT%H:%M:%S+00:00"))) + 8 * 3600
+                contest['endTime'] = end_time
+                durationSeconds = contest['endTime'] - contest['startTime']
+                if durationSeconds <= 18000 and contest['startTime'] >= int(time.time()):
+                    contest_list.append([contest, durationSeconds])
         return contest_list
 
     async def format_nc_contest(self, next_contest, durationSeconds):
@@ -92,11 +84,13 @@ class NC(Contest):
               "开始时间：{}\n" \
               "持续时间：{}\n" \
               "比赛地址：{}\n".format(
-            next_contest['contestName'],
-            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(next_contest['startTime']) // 1000)),
-            "{}小时{:02d}分钟".format(durationSeconds // 3600, durationSeconds % 3600 // 60),
-            next_contest['link']
-        )
+                  next_contest['contestName'],
+                  time.strftime("%Y-%m-%d %H:%M:%S",
+                                time.localtime(int(next_contest['startTime']))),
+                  "{}小时{:02d}分钟".format(
+                      durationSeconds // 3600, durationSeconds % 3600 // 60),
+                  next_contest['link']
+              )
         return res
 
     async def get_next_contest(self):

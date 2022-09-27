@@ -38,7 +38,7 @@ ACM_Contest_QQbot</a>修改（膜拜<a href="https://github.com/INGg" target="__
 ## 部署方法
 1. 请直接参考原项目部署方法进行部署
 2. 部署成功后，将yirimirai部署教程中的net.mamoe.mirai-api-http文件夹下的setting.yml里的端口号改成7275
-3. 创建oj_json文件夹，在里面创建**cf_contest.json**、**cf_rating.json**、**lc_contest.json**、**nc_contest.json**、**nc_rating.json**、**atc_contest.json**、**subscribe.json**等文件
+3. 创建oj_json文件夹，在里面创建**cf_contest.json**、**cf_rating.json**、**lc_contest.json**、**nc_rating.json**、**contests.json**、**subscribe.json**等文件
 4. 在cf_rating.json文件中添加以下内容
 ```json
 {
@@ -55,11 +55,20 @@ ACM_Contest_QQbot</a>修改（膜拜<a href="https://github.com/INGg" target="__
     "today": {}
 }
 ```
-6. 在cf_contest.json、lc_contest.json、atc_contest.json文件中添加以下内容
+6. 在cf_contest.json、lc_contest.json文件中添加以下内容
 ```json
 {}
 ```
-7. 在nc_contest.json文件中添加以下内容
+7. 在contests.json文件中添加以下内容
 ```json
 []
 ```
+
+## 一点建议
+强烈建议使用本项目的朋友 clone 项目到本地后，使用 cloudflare 分别做 codeforces 和 atcoder 的镜像站，然后将 `cf_api.py` 和 `atc_api.py` 中的用户 rating 查询函数的链接替换为你自己的镜像站链接。
+
+该操作将在一定程度上起到反爬虫、加速访问 codeforces 和 atcoder 以及避免这两个网站在访问峰值时访问过慢导致查询失败的作用。
+
+**需要注意的是，workers.dev 域名被污染，在国内已经无法访问，需要使用自己的域名作为 worker 的路由，如果没有域名或者买不起域名，可以使用 freenom 申请免费域名。**
+
+**作者并不解答 cloudflare 制作镜像站以及 freenom 申请免费域名这两个操作中遇到的问题，如果需要使用该方案或者遇到问题请自行 google。**

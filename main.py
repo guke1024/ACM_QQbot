@@ -600,29 +600,17 @@ if __name__ == '__main__':
         res = await query_today_contest()
         if res != '':
             msg = "早上好呀~今天的比赛有：\n" + res.strip()
-        else:
-            msg = "今天没有比赛哦~记得刷题呀！"
+        # else:
+        #     msg = "今天没有比赛哦~记得刷题呀！"
         await note('today', msg)
 
-    async def notify_project():
-        message_chain = MessageChain([
-            At(2837323305),
-            At(3073369365),
-            At(1351496641),
-            At(1821503263),
-            At(2232364398),
-            At(2948065094),
-            Plain(' 项目组请及时回复当日进度')
-        ])
-        await bot.send_group_message(805571983, message_chain)
-
-    @scheduler.scheduled_job('interval', minutes=30, timezone='Asia/Shanghai')
+    @scheduler.scheduled_job('interval', minutes=10, timezone='Asia/Shanghai')
     async def refresh_job():
         scheduler.remove_all_jobs()
         await update()
         await sche_job()
-        msg = 'success：' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        await bot.send_friend_message(2454256424, msg)
+        # msg = 'success：' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        # await bot.send_friend_message(2454256424, msg)
 
     async def sche_job():
         global cf, atc, nc, lc
@@ -646,9 +634,9 @@ if __name__ == '__main__':
         await sche_add(lc_note, lc.note_time)
         await sche_add(atc_note, atc.note_time)
         up_time = await cf.auto_update()
-        auto_up_note = '下一次cf rating自动更新时间为：' + \
-            time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(up_time))
-        await bot.send_friend_message(2454256424, auto_up_note)
+        # auto_up_note = '下一次cf rating自动更新时间为：' + \
+        #     time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(up_time))
+        # await bot.send_friend_message(2454256424, auto_up_note)
         await sche_add(auto_update_cf_user, up_time, id='up_rating')
         # scheduler.add_job(rs, 'cron', hour='0-23', timezone='Asia/Shanghai')
         # scheduler.add_job(notify_project, 'cron', hour=21, timezone='Asia/Shanghai', misfire_grace_time=60)

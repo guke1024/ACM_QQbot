@@ -8,7 +8,7 @@ from oj_api.contest import Contest
 
 class ATC(Contest):
     async def get_contest(self):
-        with open('./oj_json/atc_contest.json', 'r', encoding='utf-8') as f:
+        with open('./oj_json/contests.json', 'r', encoding='utf-8') as f:
             contest_data = json.load(f)
         contest_list = []
         for contest in contest_data:
@@ -21,7 +21,8 @@ class ATC(Contest):
                     contest['end_time'], "%Y-%m-%dT%H:%M:%S+00:00"))) + 8 * 3600
                 contest['endTime'] = end_time
                 durationSeconds = contest['endTime'] - contest['startTime']
-                contest_list.append([contest, durationSeconds])
+                if durationSeconds <= 18000 and contest['startTime'] >= int(time.time()):
+                    contest_list.append([contest, durationSeconds])
         return contest_list
 
     async def get_contest_info(self):
@@ -64,7 +65,7 @@ class ATC(Contest):
         return res
 
     async def get_rating(self, name):
-        url = "https://acm-api.170601.xyz/atcoder/users/" + name
+        url = "https://atcoder.jp/users/" + name
         html = await get_html(url)
         r = r'<th class="no-break">Rating<\/th><td><span class=(.*?)>(.*?)<\/span>'
         results = re.findall(r, html, re.S)
@@ -78,8 +79,8 @@ class ATC(Contest):
         json_data = await get_json(url)
         if json_data == -1:
             return False
-        with open('./oj_json/atc_contest.json', 'w') as f:
-            json.dump(json_data, f)
+        with open('./oj_json/contests.json', 'w') as f:
+            json.dump(json_data, f, indent=4)
         return True
 
 

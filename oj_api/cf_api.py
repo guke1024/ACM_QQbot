@@ -36,7 +36,7 @@ class CF(Contest):
                 if rating_info[0] == 0:
                     return '"{}"还未进行过比赛\n'.format(name)
                 return '"{}"是{}，当前rating为：{}'.format(name, pd_color(rating_info[0]), rating_info[0])
-        url = "https://acm-api.170601.xyz/codeforces/api/user.rating?handle=" + name
+        url = "https://codeforces.com/api/user.rating?handle=" + name
         json_data = await get_json(url)
         if json_data == -1:
             return "查询失败！"
@@ -53,7 +53,7 @@ class CF(Contest):
 
     # 查询cf最近一次结束的比赛，筛除Kotlin比赛及Div .1难度
     async def get_final_contest(self):
-        url = "https://acm-api.170601.xyz/codeforces/api/contest.list?gym=false"
+        url = "https://codeforces.com/api/contest.list?gym=false"
         json_data = await get_json(url)
         if json_data == -1:
             return ''
@@ -71,7 +71,7 @@ class CF(Contest):
 
     # 查询用户的rating总信息
     async def query_user_rating(self, uname, final_contest):
-        url = "https://acm-api.170601.xyz/codeforces/api/user.rating?handle=" + uname
+        url = "https://codeforces.com/api/user.rating?handle=" + uname
         json_data = await get_json(url)
         if json_data == -1:
             return []
@@ -204,7 +204,7 @@ class CF(Contest):
         return '"{}"：{}，{}\n'.format(uname, rating_info[0], rating_info[1])
 
     async def update_local_contest(self):
-        url = "https://acm-api.170601.xyz/codeforces/api/contest.list?gym=false"
+        url = "https://codeforces.com/api/contest.list?gym=false"
         json_data = await get_json(url)
         if json_data == -1:
             return False
