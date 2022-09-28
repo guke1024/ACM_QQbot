@@ -36,16 +36,38 @@ ACM_Contest_QQbot</a>修改（膜拜<a href="https://github.com/INGg" target="__
 - 取消订阅cf/牛客/lc/atc/每日提醒 -> 取消这些订阅
 
 ## 部署方法
-1. 请直接参考原项目部署方法进行部署
-2. 部署成功后，将yirimirai部署教程中的net.mamoe.mirai-api-http文件夹下的setting.yml里的端口号改成7275
-3. 创建oj_json文件夹，在里面创建**cf_contest.json**、**cf_rating.json**、**lc_contest.json**、**nc_rating.json**、**contests.json**、**subscribe.json**等文件
-4. 在cf_rating.json文件中添加以下内容
+ps: [INGg巨巨](https://github.com/INGg)写的![worship.gif](https://s2.loli.net/2022/02/27/VexPg9Nb5AT8cD3.gif)
+
+1. 环境配置
+   * 请参照YiriMirai的教程环境配置：https://yiri-mirai.wybxc.cc/tutorials/01/configuration
+   * 建议更新Mirai到最新版本，使用命令`./mcl -u`
+
+2. 将yirimirai部署教程中的net.mamoe.mirai-api-http文件夹下的setting.yml里的端口号改成7275
+
+3. 使用Mirai登陆qq https://yiri-mirai.wybxc.cc/tutorials/01/configuration#4-%E7%99%BB%E5%BD%95-qq
+
+4. 挂起服务（如果是linux服务器，参照官网教程，如何挂起而不退出：https://yiri-mirai.wybxc.cc/tutorials/02/linux）
+
+5. clone到本地或者服务器中（不要直接下载源码，如果网速慢请挂梯子）
+
+6. 修改`main.py`中bot的qq号为你自己的qq号
+~~~python
+bot = Mirai(
+    qq=*****,  # 改成你的机器人的 QQ 号
+    adapter=WebSocketAdapter(
+        verify_key='yirimirai', host='localhost', port=7275
+    )
+)
+~~~
+
+7. 创建oj_json文件夹，在里面创建**cf_contest.json**、**cf_rating.json**、**lc_contest.json**、**nc_rating.json**、**contests.json**、**subscribe.json**等文件
+8. 在cf_rating.json文件中添加以下内容
 ```json
 {
     "all_rating": {}
 }
 ```
-5. 在subscribe.json文件中添加以下内容
+9. 在subscribe.json文件中添加以下内容
 ```json
 {
     "cf": {},
@@ -55,14 +77,27 @@ ACM_Contest_QQbot</a>修改（膜拜<a href="https://github.com/INGg" target="__
     "today": {}
 }
 ```
-6. 在cf_contest.json、lc_contest.json文件中添加以下内容
+10. 在cf_contest.json、lc_contest.json文件中添加以下内容
 ```json
 {}
 ```
-7. 在contests.json文件中添加以下内容
+11. 在contests.json文件中添加以下内容
 ```json
 []
 ```
+
+12. 安装对应的库
+~~~shell
+pip3 install -r ./requirements.txt
+# 应该是全了qwq，如果不全请根据报错来安装相应的包，如果方便请您告知我，我将更新安装命令
+~~~
+
+13. 启动bot
+~~~shell
+python3 main.py
+# 或 python main.py
+# 自己编译安装python3.8的 python3.8 main.py
+~~~
 
 ## 一点建议
 强烈建议使用本项目的朋友 clone 项目到本地后，使用 cloudflare 分别做 codeforces 和 atcoder 的镜像站，然后将 `cf_api.py` 和 `atc_api.py` 中的用户 rating 查询函数的链接替换为你自己的镜像站链接。

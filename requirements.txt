@@ -1,0 +1,6 @@
+lxml
+httpx
+requests
+yiri-mirai
+apscheduler
+yiri-mirai-trigger
