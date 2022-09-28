@@ -94,6 +94,7 @@ class NC(Contest):
         return res
 
     async def get_next_contest(self):
+        await self.update_local_contest()
         contest_list = await self.get_contest()
         if contest_list is None:
             return "最近没有比赛~", 32536700000, 0
