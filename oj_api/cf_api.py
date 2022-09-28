@@ -215,6 +215,7 @@ class CF(Contest):
         return True
 
     async def get_contest(self):
+        await self.update_local_contest()
         with open('./oj_json/cf_contest.json', 'r') as f:
             json_data = json.load(f)
             contest_list_all = list(json_data['result'])
