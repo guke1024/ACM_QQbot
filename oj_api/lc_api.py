@@ -44,6 +44,8 @@ class LC(Contest):
         res = []
         with open("./oj_json/lc_contest.json", "r", encoding='utf-8') as f:
             json_data = json.load(f)
+        if not json_data:
+            return []
         contest_info = json_data['data']['contestUpcomingContests']
         for contest in contest_info:
             # try:

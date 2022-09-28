@@ -217,16 +217,18 @@ class CF(Contest):
     async def get_contest(self):
         with open('./oj_json/cf_contest.json', 'r') as f:
             json_data = json.load(f)
-            contest_list_all = list(json_data['result'])
-            contest_list_lately = []
+        if json_data == []:
+            return []
+        contest_list_all = list(json_data['result'])
+        contest_list_lately = []
 
-            for contest in contest_list_all:
-                if contest['relativeTimeSeconds'] < 0:
-                    if contest['name'][:6] != 'Kotlin':
-                        if 'Unrated' not in contest['name']:
-                            contest_list_lately.append(contest)
-                else:
-                    break
+        for contest in contest_list_all:
+            if contest['relativeTimeSeconds'] < 0:
+                if contest['name'][:6] != 'Kotlin':
+                    if 'Unrated' not in contest['name']:
+                        contest_list_lately.append(contest)
+            else:
+                break
         if contest_list_lately:
             contest_list_lately.sort(key=lambda x: (
                 x['relativeTimeSeconds'], x['name']), reverse=True)

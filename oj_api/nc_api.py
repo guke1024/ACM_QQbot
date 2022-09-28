@@ -65,18 +65,19 @@ class NC(Contest):
         with open('./oj_json/contests.json', 'r', encoding='utf-8') as f:
             contest_data = json.load(f)
         contest_list = []
-        for contest in contest_data:
-            if contest['source'] == '牛客竞赛' and "专题" not in contest['name']:
-                contest['contestName'] = contest['name']
-                start_time = int(time.mktime(time.strptime(
-                    contest['start_time'], "%Y-%m-%dT%H:%M:%S+00:00"))) + 8 * 3600
-                contest['startTime'] = start_time
-                end_time = int(time.mktime(time.strptime(
-                    contest['end_time'], "%Y-%m-%dT%H:%M:%S+00:00"))) + 8 * 3600
-                contest['endTime'] = end_time
-                durationSeconds = contest['endTime'] - contest['startTime']
-                if durationSeconds <= 18000 and contest['startTime'] >= int(time.time()):
-                    contest_list.append([contest, durationSeconds])
+        if contest_data != []:
+            for contest in contest_data:
+                if contest['source'] == '牛客竞赛' and "专题" not in contest['name']:
+                    contest['contestName'] = contest['name']
+                    start_time = int(time.mktime(time.strptime(
+                        contest['start_time'], "%Y-%m-%dT%H:%M:%S+00:00"))) + 8 * 3600
+                    contest['startTime'] = start_time
+                    end_time = int(time.mktime(time.strptime(
+                        contest['end_time'], "%Y-%m-%dT%H:%M:%S+00:00"))) + 8 * 3600
+                    contest['endTime'] = end_time
+                    durationSeconds = contest['endTime'] - contest['startTime']
+                    if durationSeconds <= 18000 and contest['startTime'] >= int(time.time()):
+                        contest_list.append([contest, durationSeconds])
         return contest_list
 
     async def format_nc_contest(self, next_contest, durationSeconds):
@@ -95,7 +96,7 @@ class NC(Contest):
 
     async def get_next_contest(self):
         contest_list = await self.get_contest()
-        if contest_list is None:
+        if not contest_list:
             return "最近没有比赛~", 32536700000, 0
         next_contest, durationSeconds = contest_list[0][0], contest_list[0][1]
         res = await self.format_nc_contest(next_contest, durationSeconds)
