@@ -41,6 +41,7 @@ class LC(Contest):
             return False
 
     async def get_contest(self):
+        await LC.update_local_contest(self)
         res = []
         with open("./oj_json/lc_contest.json", "r", encoding='utf-8') as f:
             json_data = json.load(f)
