@@ -99,7 +99,7 @@ class NC(Contest):
             return "最近没有比赛~", 32536700000, 0
         next_contest, durationSeconds = contest_list[0][0], contest_list[0][1]
         res = await self.format_nc_contest(next_contest, durationSeconds)
-        return res.rstrip('\n'), int(next_contest['startTime'] // 1000), durationSeconds
+        return res.rstrip('\n'), next_contest['startTime'], durationSeconds
 
     async def get_recent_info(self):
         recent, _, _ = await self.get_next_contest()
