@@ -69,6 +69,6 @@ ACM_Contest_QQbot</a>修改（膜拜<a href="https://github.com/INGg" target="__
 
 该操作将在一定程度上起到反爬虫、加速访问 codeforces 和 atcoder 以及避免这两个网站在访问峰值时访问过慢导致查询失败的作用。
 
-**需要注意的是，workers.dev 域名被污染，在国内已经无法访问，需要使用自己的域名作为 worker 的路由，如果没有域名或者买不起域名，可以使用 freenom 申请免费域名。**
+**cloudflare 可以使用免费版，每天有 10 万次请求额度，需要注意的是，workers.dev 域名被污染，在国内已经无法访问，需要使用自己的域名作为 worker 的路由，如果没有域名或者买不起域名，可以使用 freenom 申请免费域名。**
 
 **作者并不解答 cloudflare 制作镜像站以及 freenom 申请免费域名这两个操作中遇到的问题，如果需要使用该方案或者遇到问题请自行 google。**
