@@ -36,7 +36,7 @@ ACM_Contest_QQbot</a>修改（膜拜<a href="https://github.com/INGg" target="__
 - 取消订阅cf/牛客/lc/atc/每日提醒 -> 取消这些订阅
 
 ## 部署方法
-ps: [INGg巨巨](https://github.com/INGg)写的![worship.gif](https://s2.loli.net/2022/02/27/VexPg9Nb5AT8cD3.gif)
+ps: [INGg巨巨](https://github.com/INGg)写的![3E408F36CA2E4C062603C154D242E2A1.gif](https://s2.loli.net/2022/09/28/oQ2pRUFLIenZEGM.gif)
 
 1. 环境配置
    * 请参照YiriMirai的教程环境配置：https://yiri-mirai.wybxc.cc/tutorials/01/configuration
