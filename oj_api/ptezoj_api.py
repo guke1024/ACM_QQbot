@@ -65,7 +65,9 @@ class PTEZOJ(Contest):
               )
         return res
 
-
+    async def get_rating(self, name):
+        return -1
+    
     async def update_local_contest(self):
         return True
 
