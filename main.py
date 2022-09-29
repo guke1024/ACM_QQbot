@@ -10,7 +10,7 @@ import asyncio
 from bisect import bisect_right
 from mirai.models.api import MessageFromIdResponse
 from log import Log
-from oj_api import atc_api, cf_api, nc_api, lc_api
+from oj_api import atc_api, cf_api, nc_api, lc_api, ptyzoj_api, ptezoj_api
 from mirai.models import NewFriendRequestEvent, Quote, Group, Friend
 from mirai import Startup, Shutdown, MessageEvent
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -27,6 +27,8 @@ cf = cf_api.CF()
 nc = nc_api.NC()
 lc = lc_api.LC()
 atc = atc_api.ATC()
+ptyzoj = ptyzoj_api.PTYZOJ()
+ptezoj = ptezoj_api.PTEZOJ()
 
 
 async def get_md5(filepath):
@@ -63,12 +65,14 @@ async def update():
     await nc.update_contest()
     await lc.update_contest()
     await atc.update_contest()
+    await ptyzoj.update_contest()
+    await ptezoj.update_contest()
 
 
 async def query_next_contest():
     global cf, atc, nc, lc
     next_contest = [[cf.info, cf.begin_time], [atc.info, atc.begin_time], [nc.info, nc.begin_time],
-                    [lc.info, lc.begin_time]]
+                    [lc.info, lc.begin_time],[ptyzoj.info, ptyzoj.begin_time],[ptezoj.info, ptezoj.begin_time]]
     next_contest.sort(key=lambda x: x[1])
     return next_contest
 
@@ -99,7 +103,7 @@ async def sche_add(func, implement, id=None):
 
 if __name__ == '__main__':
     bot = Mirai(
-        qq=1045760198,  # 改成你的机器人的 QQ 号
+        qq=2693149792,  # 改成你的机器人的 QQ 号
         adapter=WebSocketAdapter(
             verify_key='yirimirai', host='localhost', port=7275
         )
@@ -173,7 +177,7 @@ if __name__ == '__main__':
             k = msg[2:].lower()
             if k == '每日提醒':
                 k = "today"
-            if k in ['cf', '牛客', 'lc', 'atc', 'today']:
+            if k in ['cf', '牛客', 'lc', 'atc', 'today','ptyzoj','ptezoj']:
                 e_type = event.type
                 if e_type == 'GroupMessage':
                     id = event.sender.group.id
@@ -200,7 +204,7 @@ if __name__ == '__main__':
             k = msg[4:].lower()
             if k == '每日提醒':
                 k = "today"
-            if k in ['cf', '牛客', 'lc', 'atc', 'today']:
+            if k in ['cf', '牛客', 'lc', 'atc', 'today','ptyzoj','ptezoj']:
                 with open('./oj_json/subscribe.json', 'r+', encoding='utf-8') as f:
                     all_subscribe = json.load(f)
                     e_type = event.type
@@ -512,6 +516,22 @@ if __name__ == '__main__':
             rating = await lc.get_rating(uname)
             await bot.send(event, rating if rating else "不存在这个用户或查询出错哦")
 
+    @bot.on(MessageEvent)
+    async def query_ptyzoj_contest(event: MessageEvent):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        if msg.strip().lower() == "ptyzoj":
+            global ptyzoj
+            res = await ptyzoj.get_contest_info()
+            await bot.send(event, res)
+             
+    @bot.on(MessageEvent)
+    async def query_ptezoj_contest(event: MessageEvent):
+        msg = "".join(map(str, event.message_chain[Plain]))
+        if msg.strip().lower() == "ptezoj":
+            global ptezoj
+            res = await ptezoj.get_contest_info()
+            await bot.send(event, res)
+            
     async def default(x):
         return ''
 
@@ -590,12 +610,22 @@ if __name__ == '__main__':
         global lc
         message_chain = await lc.get_recent_info()
         await note('lc', message_chain)
-
+        
     async def atc_note():
         global atc
         message_chain = await atc.get_recent_info()
         await note('atc', message_chain)
 
+    async def ptyzoj_note():
+        global ptyzoj
+        message_chain = await ptyzoj.get_recent_info()
+        await note('ptyzoj', message_chain)
+
+    async def ptezoj_note():
+        global ptezoj
+        message_chain = await ptezoj.get_recent_info()
+        await note('ptezoj', message_chain)
+        
     async def notify_contest_info():
         res = await query_today_contest()
         if res != '':
@@ -633,6 +663,8 @@ if __name__ == '__main__':
         await sche_add(nc_shang_hao, nc.begin_time)
         await sche_add(lc_note, lc.note_time)
         await sche_add(atc_note, atc.note_time)
+        await sche_add(ptyzoj_note, ptyzoj.note_time)
+        await sche_add(ptezoj_note, ptezoj.note_time)
         up_time = await cf.auto_update()
         # auto_up_note = '下一次cf rating自动更新时间为：' + \
         #     time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(up_time))
