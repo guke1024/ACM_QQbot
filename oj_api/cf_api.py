@@ -28,26 +28,38 @@ class CF(Contest):
             else:
                 return '黑红名神犇'
 
-        with open('./oj_json/cf_rating.json', 'r', encoding='utf-8') as f:
-            all_rating = json.load(f)
-            rating = all_rating["all_rating"]
-            if name in rating:
-                rating_info = rating[name]
-                if rating_info[0] == 0:
-                    return '"{}"还未进行过比赛\n'.format(name)
-                return '"{}"是{}，当前rating为：{}'.format(name, pd_color(rating_info[0]), rating_info[0])
         url = "https://codeforces.com/api/user.rating?handle=" + name
         json_data = await get_json(url)
         if json_data == -1:
+            with open('./oj_json/cf_rating.json', 'r', encoding='utf-8') as f:
+                all_rating = json.load(f)
+                rating = all_rating["all_rating"]
+                if name in rating:
+                    rating_info = rating[name]
+                    if rating_info[0] == 0:
+                        return '"{}"还未进行过比赛\n'.format(name)
+                    return '"{}"是{}，当前rating为：{}'.format(name, pd_color(rating_info[0]), rating_info[0])
             return "查询失败！"
         json_data = dict(json_data)
         if json_data['status'] == "OK":
             json_data = json_data['result']
-            if len(json_data) == 0:
-                return '"{}"还未进行过比赛\n'.format(name)
+            contest_len = len(json_data)
+            if contest_len == 0:
+                return '"{}"还未进行过比赛'.format(name)
             final_contest = json_data[-1]
-            return '"{}"是{}，当前rating为：{}'.format(name, pd_color(int(final_contest['newRating'])),
-                                                 final_contest['newRating'])
+            if contest_len > 2:
+                recent_contest = json_data[contest_len - 3:]
+            else:
+                recent_contest = json_data
+            res = '"{}"是{}，当前rating为：{}\n最近表现：'.format(name, pd_color(int(final_contest['newRating'])),
+                                                       final_contest['newRating'])
+            for record in recent_contest:
+                diff = record['newRating'] - record['oldRating']
+                if diff >= 0:
+                    diff = '+' + str(diff)
+                res += '\n{}：{}，rating：{}'.format(
+                    record['contestName'], diff, record['newRating'])
+            return res
         else:
             return "该用户不存在！"
 
