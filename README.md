@@ -1,3 +1,10 @@
+## 注意
+**由于yiri-mirai已经停止更新，目前已知添加图片与删除图片功能不正常，需要手动更改yiri-mirai库源码，修改处如下所示**
+![image](https://user-images.githubusercontent.com/46668943/230928717-77bf39e8-fa87-4c62-89c3-f456d27892eb.png)
+![image](https://user-images.githubusercontent.com/46668943/230928865-7a3f0a41-d38e-4196-a787-c720d4e13da1.png)
+
+---
+
 本项目是一个在群里可以通知打codeforces、牛客、AtCoder、LeetCode的qq机器人项目，基于<a href="https://github.com/INGg/ACM_Contest_QQbot" target="__blank">
 ACM_Contest_QQbot</a>修改（膜拜<a href="https://github.com/INGg" target="__blank">INGg巨巨</a>
 ![worship.gif](https://s2.loli.net/2022/02/27/VexPg9Nb5AT8cD3.gif) ）。
