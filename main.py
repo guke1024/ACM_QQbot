@@ -279,7 +279,7 @@ if __name__ == '__main__':
                     await bot.send(event, "本群暂无权限，请联系管理员！")
                     return
             quotes = event.message_chain[Quote]
-            message: MessageFromIdResponse = await bot.message_from_id(quotes[0].id)
+            message: MessageFromIdResponse = await bot.message_from_id(quotes[0].target_id, quotes[0].id)
             images = message.data.message_chain[Image]
             flag = 0
             for image in images:
@@ -308,7 +308,7 @@ if __name__ == '__main__':
                 await bot.send(event, "你没有该权限！")
                 return
             quotes = event.message_chain[Quote]
-            message: MessageFromIdResponse = await bot.message_from_id(quotes[0].id)
+            message: MessageFromIdResponse = await bot.message_from_id(quotes[0].target_id, quotes[0].id)
             image = message.data.message_chain[Image][0]
             suffix = image.image_id.split('.')[1]
             filename = './img/' + 'tmp.' + suffix
